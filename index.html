@@ -1,0 +1,82 @@
+<html>
+<head>
+    <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type" />
+</head>
+<body>
+
+<pre id="pretty"></pre>
+
+<form id="pretty_search">
+    <input id="uri" type="text" name="uri" style="width:80%"></input>
+    <input type="reset" value="reset"></input>
+    <input type="submit" value="prettify"></input>
+</form>
+
+<script>
+var params = location.search.substring(1).split("&");
+var method = "json_stringify";
+var uri = "";
+
+for (p in params) {
+	var pair = params[p].split("=");
+
+	if (pair[0] == "uri") {
+		uri = unescape(pair[1]);
+	} else if (pair[0] == "method") {
+		method = unescape(pair[1]);
+	}
+}
+
+if (uri != "") {
+	document.getElementById("pretty").innerHTML = "Loading " + uri + "... ";
+	document.getElementById("pretty_search").style.display = "none";
+	document.title = uri;
+	load(uri, prettify);
+}
+
+function load(uri, cb)
+{
+	var xhttp;
+
+	try {
+		xhttp = new XMLHttpRequest();
+	} catch (e) {
+		try {
+			xhttp = new ActiveXObject("Msxml2.XMLHTTP");
+		} catch (e) {
+			try {
+				xhttp = new ActiveXObject("Microsoft.XMLHTTP");
+			} catch (e) {
+				document.getElementById("pretty").innerHTML = "Your browser is not supported";
+				return false;
+			}
+		}
+	}
+
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4) {
+			if (this.status == 200) {
+				cb(this.responseText);
+			} else {
+				document.getElementById("uri").value = uri;
+				document.getElementById("pretty").innerHTML += this.statusText;
+				document.getElementById("pretty_search").style.display = "inline";
+			}
+		}
+	}
+
+	xhttp.open("GET", uri, true);
+	xhttp.send();
+}
+
+function prettify(response)
+{
+	if (method == "json_stringify") {
+		document.getElementById("pretty").innerHTML = JSON.stringify(JSON.parse(response), null, 2);
+	} else {
+		document.getElementById("pretty").innerHTML = response;
+	}
+}
+</script>
+</body>
+</html>
